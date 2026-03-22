@@ -85,7 +85,9 @@ int main()
         1.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f
     };
+
     std::vector<float> triangleVertices = test_graph().mkTriangleVectors();
+    std::vector<float> graphLineVertices = test_graph().mkLineVectors();
 
     int numTriangles = triangleVertices.size() / 9;
 
@@ -192,7 +194,8 @@ int main()
     glGenVertexArrays(1, &lineVAO);
     glBindVertexArray(lineVAO);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, graphLineVertices.size() * sizeof(float), graphLineVertices.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glUseProgram(lineShaderProgram);
 
@@ -211,7 +214,7 @@ int main()
 
         glUseProgram(lineShaderProgram);
         glBindVertexArray(lineVAO);
-        glDrawArrays(GL_LINES, 0, 2);
+        glDrawArrays(GL_LINES, 0, graphLineVertices.size()/2);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
