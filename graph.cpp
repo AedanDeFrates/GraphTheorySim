@@ -3,61 +3,63 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
-struct Coord3 
-{
-    float x; float y; float z;
-    
-    bool operator==(Coord3& other) const 
-    {
-        return x == other.x && y == other.y && z == other.z;
-    }
-};
+#include "graph.hpp"
 
-class Vertex
+
+bool Coord3::operator==(const Coord3& other) const 
 {
-    public:
-    Coord3 pos;
-    float radius;
-    
-    Vertex() : pos{0,0,0}, radius(0.0) {}
-    Vertex(Coord3 p, float r)
+    return x == other.x && y == other.y && z == other.z;
+}
+
+//=====================================================
+//                  VERTEX CLASS IMPL
+//=====================================================
+
+//Construxtors
+    Vertex::Vertex() : pos{0,0,0}, radius(0.0) {}
+    Vertex::Vertex(Coord3 p, float r)
     {
         pos = p;
         radius = r;
     }
     
-    bool equals(Vertex* v)
+    bool Vertex::equals(Vertex* v) const
     {
-        if(this->pos == v->pos) {return false;}
-        else {return true;}
+        if(this->pos == v->pos) {return true;}
+        else {return false;}
     }
 
-    std::string toString()
+    std::string Vertex::toString() const
     {
         std::stringstream ss;
         ss << "Vertex: POSITION = ("<< pos.x <<", "<< pos.y <<", " << pos.z <<") & RADIUS = " << radius << "";
         return ss.str();
     }
-};
 
-class Edge
-{
-    public:
-    Vertex* head;
-    Vertex* tail;
-    
-    Edge(Vertex* h, Vertex* t)
+    void Vertex::clampPos()
+    {
+        pos.x = std::clamp(pos.x, -1.0f, 1.0f);
+        pos.y = std::clamp(pos.y, -1.0f, 1.0f);
+        pos.z = std::clamp(pos.z, -1.0f, 1.0f);
+    }
+
+//=============================================================
+//                      EDGE CLASS IMPL
+//=============================================================
+
+    Edge::Edge(Vertex* h, Vertex* t)
     {
         this->head = h;
         this->tail = t;
     }
-    bool isLoop()
+    bool Edge::isLoop() const
     {
         return head == tail;
     }
     
-    std::string toString()
+    std::string Edge::toString() const
     {
         std::string h;
         std::string t;
@@ -68,8 +70,7 @@ class Edge
         return h + t;
     }
     
-    public:
-    float getDistance()
+    float Edge::getDistance() const
     {
        float distance = std::sqrt(
             (head->pos.x - tail->pos.x)*(head->pos.x - tail->pos.x) + 
@@ -78,55 +79,51 @@ class Edge
        );
        return distance;
     }
-};
 
-class Graph
+//=============================================================
+//                      GRAPH CLASS IMPL
+//=============================================================
+Graph::Graph()
 {
-    public:
-    std::vector<Vertex*>    vectSet;
-    std::vector<Edge*>      edgeSet;
+    this->vertexSet = {};
+    this->edgeSet = {};
+}
     
-    Graph()
+bool Graph::addVertex(Vertex* v)
+{
+    if(vertexSet.empty()) {vertexSet.push_back(v); return true;} //If there are no vectors in the graph: TRUE
+        
+    for(Vertex* vCurr : vertexSet)
     {
-        this->vectSet = {};
-        this->edgeSet = {};
+        if(v == vCurr) {return false;} //If the object the same: FALSE
+        if(v->equals(vCurr)) {return false;} //If the positions of the vector are the same: FALSE
     }
+        
+    vertexSet.push_back(v);
+    return true;
+}
     
-    bool addVector(Vertex* v)
+bool Graph::addEdge(Edge* e)
+{
+    if(edgeSet.empty()) { edgeSet.push_back(e); return true;}
+        
+    for(Edge* eCurr : edgeSet)
     {
-        if(vectSet.empty()) {vectSet.push_back(v); return true;} //If there are no vectors in the graph: TRUE
-        
-        for(Vertex* vCurr : vectSet)
-        {
-            if(v == vCurr) {return false;} //If the object the same: FALSE
-            if(v->equals(vCurr)) {return false;} //If the positions of the vector are the same: FALSE
-        }
-        
-        vectSet.push_back(v);
-        return true;
+        if(e == eCurr) { return false; }
+        if(e->head == eCurr->head && e->tail == eCurr->tail) { return false; }
     }
-    
-    bool addEdge(Edge* e)
-    {
-        if(edgeSet.empty()) { edgeSet.push_back(e); return true;}
-        
-         for(Edge* eCurr : edgeSet)
-         {
-            if(e == eCurr) { return false; }
-            if(e->head == eCurr->head && e->tail == eCurr->tail) { return false; }
-         }
          
-         edgeSet.push_back(e);
-         return true;
-    }
+    edgeSet.push_back(e);
+    return true;
+}
     
-    bool isSimple()
+bool Graph::isSimple() const
+{
+    for(int i = 0; i < edgeSet.size(); i++)
     {
-        for(int i = 0; i < edgeSet.size(); i++)
-        {
-            if(edgeSet.at(i)->isLoop()){ return false; }
-        }
-        for (int i = 0; i < edgeSet.size() -1; i++)
+        if(edgeSet.at(i)->isLoop()){ return false; }
+    }
+    for (int i = 0; i < edgeSet.size() -1; i++)
         {
             for(int j = i+1; j < edgeSet.size() - 2; j++)
             {
@@ -138,9 +135,47 @@ class Graph
         }
         return true;
     }
-};
+    //funct to return float[] of vertex shape vectors.
+    std::vector<float> Graph::mkLineVectors() const
+    {
+        std::vector<float> vertices;
+        for(int i = 0; i < edgeSet.size(); i++)
+        {
+            vertices.push_back(edgeSet.at(i)->head->pos.x);
+            vertices.push_back(edgeSet.at(i)->head->pos.y);
+            vertices.push_back(edgeSet.at(i)->head->pos.z);
+            vertices.push_back(edgeSet.at(i)->tail->pos.x);
+            vertices.push_back(edgeSet.at(i)->tail->pos.y);
+            vertices.push_back(edgeSet.at(i)->tail->pos.z);
+        }
+        return vertices;
+    }
+    //funct to return float[] of edge line vectors.
+    std::vector<float> Graph::mkTriangleVectors() const
+    {
+        std::vector<float> vertices;
+        for(int i = 0; i < vertexSet.size(); i++)
+        {
+            vertices.push_back(vertexSet.at(i)->pos.x);
+            vertices.push_back(vertexSet.at(i)->pos.y+0.02);
+            vertices.push_back(vertexSet.at(i)->pos.z);
 
-int test_graph()
+            vertices.push_back(vertexSet.at(i)->pos.x-0.02);
+            vertices.push_back(vertexSet.at(i)->pos.y-0.02);
+            vertices.push_back(vertexSet.at(i)->pos.z);
+
+            vertices.push_back(vertexSet.at(i)->pos.x+0.02);
+            vertices.push_back(vertexSet.at(i)->pos.y-0.02);
+            vertices.push_back(vertexSet.at(i)->pos.z);
+        }
+        return vertices;
+    }
+
+
+//=============================================================
+//                   TEST GRAPH FUNCTION
+//=============================================================
+Graph test_graph()
 {
     std::cout << "==========Test==========\n";
     std::cout << "==========Print Coord3==========\n";
@@ -177,39 +212,39 @@ int test_graph()
     
     std::cout << "==========Print Graph==========\n";
 
-    Coord3 coord1{1,2,3};
-    Coord3 coord2{2,4,6};
-    Coord3 coord3{3,5,7};
-    Coord3 coord4{1,1,1};
-    Coord3 coord5{2,3,6};
+    Coord3 coord1{0.13,0.21,0};
+    Coord3 coord2{0.25,0.49,0};
+    Coord3 coord3{0.32,0.523,0};
+    Coord3 coord4{0.11,0.19,0};
+    Coord3 coord5{0.23,0.34,0};
 
-    Vertex v1(coord1, 1.0f); Vertex* v1P = &v1;
-    Vertex v2(coord2, 1.0f); Vertex* v2P = &v2;
-    Vertex v3(coord3, 1.0f); Vertex* v3P = &v3;
-    Vertex v4(coord4, 1.0f); Vertex* v4P = &v4;
-    Vertex v5(coord5, 1.0f); Vertex* v5P = &v5;
+    Vertex* v1 = new Vertex(coord1, 1.0f);
+    Vertex* v2 = new Vertex(coord2, 1.0f);
+    Vertex* v3 = new Vertex(coord3, 1.0f);
+    Vertex* v4 = new Vertex(coord4, 1.0f);
+    Vertex* v5 = new Vertex(coord5, 1.0f);
 
-    Edge e1(v1P, v2P); Edge* e1P = &e1;
-    Edge e2(v1P, v1P); Edge* e2P = &e2;
-    Edge e3(v2P, v3P); Edge* e3P = &e3;
-    Edge e4(v3P, v4P); Edge* e4P = &e4;
-    Edge e5(v3P, v5P); Edge* e5P = &e5;
-    Edge e6(v2P, v5P); Edge* e6P = &e6;
+    Edge* e1 = new Edge(v1, v2);
+    Edge* e2 = new Edge(v1, v1);
+    Edge* e3 = new Edge(v2, v3);
+    Edge* e4 = new Edge(v3, v4);
+    Edge* e5 = new Edge(v3, v5);
+    Edge* e6 = new Edge(v2, v5);
 
     Graph g;
 
-    g.addVector(v1P);
-    g.addVector(v2P);
-    g.addVector(v3P);
-    g.addVector(v4P);
-    g.addVector(v5P);
+    g.addVertex(v1);
+    g.addVertex(v2);
+    g.addVertex(v3);
+    g.addVertex(v4);
+    g.addVertex(v5);
 
-    g.addEdge(e1P);
-    g.addEdge(e2P);
-    g.addEdge(e3P);
-    g.addEdge(e4P);
-    g.addEdge(e5P);
-    g.addEdge(e6P);
+    g.addEdge(e1);
+    g.addEdge(e2);
+    g.addEdge(e3);
+    g.addEdge(e4);
+    g.addEdge(e5);
+    g.addEdge(e6);
 
-    return 0;
+    return g; 
 }

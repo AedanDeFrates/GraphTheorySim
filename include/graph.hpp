@@ -6,36 +6,53 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 struct Coord3
 {
-    bool operator==(Coord3& other) const;
+    public:
+    float x, y, z;
+    bool operator==(const Coord3& other) const;
 };
 
-class Vector
+class Vertex
 {
-    Vector();
-    Vector(Coord3 p, float r);
+    public:
+    Coord3 pos;
+    float radius;
 
-    bool equals(Vector* v);
-    std::string toString();
-
+    Vertex();
+    Vertex(Coord3 p, float r);
+    bool equals(Vertex* v) const;
+    std::string toString() const;
+    void clampPos();
 };
 class Edge
 {
-    Edge(Vector* h, Vector* t);
-    bool isLoop();
-    std::string toString();
-    float getDistance();
+    public:
+    Vertex* head;
+    Vertex* tail;
+
+    Edge(Vertex* h, Vertex* t);
+    bool isLoop() const;
+    std::string toString() const;
+    float getDistance() const;
 };
 class Graph
 {
     public:
+    std::vector<Vertex*> vertexSet;
+    std::vector<Edge*> edgeSet;
 
     Graph();
-    bool addVector(Vector* v);
+    bool addVertex(Vertex* v);
     bool addEdge(Edge* e);
-    bool isSimple();
+    bool isSimple() const;
+    std::vector<float> mkLineVectors() const;
+    std::vector<float> mkTriangleVectors() const;
+
 };
+
+Graph test_graph();
 
 #endif
