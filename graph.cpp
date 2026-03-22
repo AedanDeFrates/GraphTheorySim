@@ -212,11 +212,11 @@ Graph test_graph()
     
     std::cout << "==========Print Graph==========\n";
 
-    Coord3 coord1{0.13,0.21,0};
-    Coord3 coord2{0.25,0.49,0};
-    Coord3 coord3{0.32,0.523,0};
-    Coord3 coord4{0.11,0.19,0};
-    Coord3 coord5{0.23,0.34,0};
+    Coord3 coord1{-0.9,0,0};
+    Coord3 coord2{-0.5,0,0};
+    Coord3 coord3{-0.1,0,0};
+    Coord3 coord4{.3, 0 ,0};
+    Coord3 coord5{-0.4,-0.5,0};
 
     Vertex* v1 = new Vertex(coord1, 1.0f);
     Vertex* v2 = new Vertex(coord2, 1.0f);
