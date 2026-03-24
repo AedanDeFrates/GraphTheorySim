@@ -1,6 +1,10 @@
 #include <glad/glad.h>   // Load OpenGL functions
 #include <GLFW/glfw3.h>  // Windowing/input
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 
 #include "graph.hpp"
