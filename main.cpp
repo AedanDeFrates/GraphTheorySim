@@ -77,46 +77,34 @@ int main()
     glViewport(0,0,800,600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
 
-    //Set Triangle Vertices
-    float vertices[] = {
-        //Triangle 1
-        -0.01f, -0.01f, 0.0f,
-        0.01f, -0.01f, 0.0f,
-        0.0f, 0.01f, 0.0f,
-        
-        //Triangle 2
-        -1.0f, -1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
+    //=====================================================================
+    //                        Configure Vertices
+    //=====================================================================
+
+    // Triangle Vertices
+    float triangleVertices[] = {
+        0.0f, 0.2f, 0.0f,
+        -0.2f, -0.2f, 0.0f,
+        0.2f, -0.2f, 0.0f
+    };
+
+    // Triangle Positions
+    std::vector<glm::vec3> trianglePositions = test_graph().getTrianglePositions();
+
+    // Line Vertices
+    float lineVertices[] = {
+        0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f
     };
+    // Line Positions
+    // Head
+    std::vector<glm::vec3> lineStartPos = test_graph().getEdgeTailVectors();
+    std::vector<glm::vec3> lineEndPos = test_graph().getEdgeHeadVectors();
 
-    std::vector<float> triangleVertices = test_graph().mkTriangleVectors();
+    //funct.for.line.positions
+
+    // Lines
     std::vector<float> graphLineVertices = test_graph().mkLineVectors();
-
-    int numTriangles = triangleVertices.size() / 9;
-
-    /*
-    for(int t = 0; t < numTriangles; t++)
-    {
-        std::cout << "Triangle " << t << ":\n";
-        for(int v = 0; v < 3; v++)
-        {
-            int idx = t*9 + v*3;
-            std::cout << "  Vertex " << v << ": ("
-                << triangleVertices[idx] << ", "
-                << triangleVertices[idx+1] << ", "
-                << triangleVertices[idx+2] << ")\n";
-        }
-    }
-    */
-
-    std::cout << "Triangle verts size: " << triangleVertices.size() << std::endl;
-
-    //Set Line Vertices
-    float lineVertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f
-    };
 
     //=======================================================================
     //                        TRIANGLE SHADER SETUP
@@ -159,7 +147,7 @@ int main()
     //change sizeof(vertices) <--> triangleVertices.size() * sizeof(float)
     //change vertices <--> triangleVertices.data()
     //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, triangleVertices.size() * sizeof(float), triangleVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); 
     glEnableVertexAttribArray(0);
@@ -209,15 +197,38 @@ int main()
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+        // activate triangle shader
         glUseProgram(shaderProgram);
+        
+        // render triangles
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, triangleVertices.size()/3);
+
+        for(glm::vec3 pos : trianglePositions)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, pos);
+
+            //MUST IMPL SHADER CLASS FOR TRIANGLE
+
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
 
         glUseProgram(lineShaderProgram);
         glBindVertexArray(lineVAO);
+
+        for(unsigned int i = 0; i < lineEndPos.size(); i++)
+        {
+            glm::mat4 endModel = glm::mat4(1.0f);
+            endModel = glm::translate(endModel, lineEndPos.at(i));
+            
+
+            glDrawArrays(GL_LINES, 0, 2);
+        }
+
         glDrawArrays(GL_LINES, 0, graphLineVertices.size()/2);
 
         glfwSwapBuffers(window);

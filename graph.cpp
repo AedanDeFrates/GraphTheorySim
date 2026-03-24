@@ -5,6 +5,10 @@
 #include <cmath>
 #include <algorithm>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "graph.hpp"
 
 
@@ -135,7 +139,27 @@ bool Graph::isSimple() const
         }
         return true;
     }
-    //funct to return float[] of vertex shape vectors.
+
+    std::vector<glm::vec3> Graph::getEdgeHeadVectors() const
+    {
+        std::vector<glm::vec3> headVectors;
+        for(unsigned int i = 0; i < edgeSet.size(); i++)
+        {
+            headVectors.push_back(glm::vec3(edgeSet.at(i)->head->pos.x, edgeSet.at(i)->head->pos.y, edgeSet.at(i)->head->pos.z));
+        }
+        return headVectors;
+    }
+    std::vector<glm::vec3> Graph::getEdgeTailVectors() const
+    {
+        std::vector<glm::vec3> tailVectors;
+        for(unsigned int i = 0; i < edgeSet.size(); i++)
+        {
+            tailVectors.push_back(glm::vec3(edgeSet.at(i)->tail->pos.x, edgeSet.at(i)->tail->pos.y, edgeSet.at(i)->tail->pos.z));
+        }
+        return tailVectors;
+    }
+
+
     std::vector<float> Graph::mkLineVectors() const
     {
         std::vector<float> vertices;
@@ -148,11 +172,28 @@ bool Graph::isSimple() const
             vertices.push_back(edgeSet.at(i)->tail->pos.y);
             vertices.push_back(edgeSet.at(i)->tail->pos.z);
         }
+
+        glm::vec3 edgePositions[edgeSet.size()];
+        for(unsigned int i = 0; i < edgeSet.size(); i++)
+        {
+            float x1 = edgeSet.at(i)->tail->pos.x;
+            float y1 = edgeSet.at(i)->tail->pos.y;
+            float z1 = edgeSet.at(i)->tail->pos.z;
+
+            float x2 = edgeSet.at(i)->head->pos.x;
+            float y2 = edgeSet.at(i)->head->pos.y;
+            float z2 = edgeSet.at(i)->head->pos.z;
+
+            edgePositions[i] = glm::vec3((x2 - x1) / 2, (y2 - y1) / 2, (z2 - z1) / 2);
+        }
+
         return vertices;
     }
     //funct to return float[] of edge line vectors.
-    std::vector<float> Graph::mkTriangleVectors() const
+    std::vector<glm::vec3> Graph::getTrianglePositions() const
     {
+        // Old impl for mkTriangleVectors()
+        /*
         std::vector<float> vertices;
         for(int i = 0; i < vertexSet.size(); i++)
         {
@@ -168,7 +209,15 @@ bool Graph::isSimple() const
             vertices.push_back(vertexSet.at(i)->pos.y-0.02);
             vertices.push_back(vertexSet.at(i)->pos.z);
         }
-        return vertices;
+        */
+        
+        std::vector<glm::vec3> vertexPositions;
+        for(int i = 0; i < vertexSet.size(); i++)
+        {
+            vertexPositions.push_back(glm::vec3(vertexSet.at(i)->pos.x, vertexSet.at(i)->pos.y, vertexSet.at(i)->pos.z));
+        }
+
+        return vertexPositions;
     }
 
 
