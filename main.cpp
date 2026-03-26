@@ -8,42 +8,20 @@
 #include <iostream>
 
 #include "graph.hpp"
+#include "Shader.h"
 
 //Shaders for Triangle
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\0";
+const char *triangleVertexShaderSource = "shaderSources/triangle.vs";
+const char *triangleFragmentShaderSource = "shaderSources/triangle.fs";
 
 //Shaders for Line
-const char *lineVertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos, 1.0);\n"
-    "}\0";
-const char *lineFragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor; \n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0,1.0,1.0,1.0);\n"
-    "}\0";
+const char *lineVertexShaderSource = "shaderSources/line.vs";
+const char *lineFragmentShaderSource = "shaderSources/line.fs";
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 
-// Callback for window resize
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) 
-{
-    glViewport(0, 0, width, height);
-}
 void processInput(GLFWwindow* window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -54,6 +32,9 @@ void processInput(GLFWwindow* window)
 
 int main() 
 {
+    //===============================================================
+    //                          INIT
+    //===============================================================
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -74,8 +55,9 @@ int main()
         return -1;
     }
 
-    glViewport(0,0,800,600);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
+    glViewport(0,0,SCR_WIDTH, SCR_HEIGHT);
+
+    glEnable(GL_DEPTH_TEST);
 
     //=====================================================================
     //                        Configure Vertices
@@ -106,32 +88,6 @@ int main()
     // Lines
     std::vector<float> graphLineVertices = test_graph().mkLineVectors();
 
-    //=======================================================================
-    //                        TRIANGLE SHADER SETUP
-    //=======================================================================
-    //create and compile vertex shader
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    
-    //create and compile fragment shader
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    //create shader program object
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
     //=========================================================================
     //                        TRIANGLE VBO/VAO SETUP
     //=========================================================================
@@ -143,40 +99,14 @@ int main()
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-
-    //change sizeof(vertices) <--> triangleVertices.size() * sizeof(float)
-    //change vertices <--> triangleVertices.data()
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); 
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-    //========================================================
-    //========================================================
-
-    unsigned int lineVertexShader, lineFragmentShader;
-
-    lineVertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(lineVertexShader, 1, &lineVertexShaderSource, NULL);
-    glCompileShader(lineVertexShader);
-
-    lineFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(lineFragmentShader, 1, &lineFragmentShaderSource, NULL);
-    glCompileShader(lineFragmentShader);
-
-    unsigned int lineShaderProgram;
-    lineShaderProgram = glCreateProgram();
-
-    glAttachShader(lineShaderProgram, lineVertexShader);
-    glAttachShader(lineShaderProgram, lineFragmentShader);
-    glLinkProgram(lineShaderProgram);
-
-    glDeleteShader(lineVertexShader);
-    glDeleteShader(lineFragmentShader);
-
     //=========================================================
+    //                    LINE VBO/VAO SETUP
     //=========================================================
 
     unsigned int lineVBO, lineVAO;
@@ -189,37 +119,74 @@ int main()
     //glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, graphLineVertices.size() * sizeof(float), graphLineVertices.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glUseProgram(lineShaderProgram);
 
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, 3*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    //============================================================
+    //                      SHADER SETUP
+    //============================================================
+    Shader triangleShader(triangleVertexShaderSource, triangleFragmentShaderSource );
+    Shader lineShader(lineVertexShaderSource, lineFragmentShaderSource);
+
+
+    //THREE SHADER OPERATIONS
+    // 1): PROJECTION MATRIX
+    // 2): VIEW MATRIX
+    // 3): MODEL MATRIX
+    
+
+    //============================================================
+    //                     CAMERA SETUP
+    //============================================================
+
+
+
+
+    //==============================================================
+    //                      MAIN RENDER LOOP
+    //==============================================================
+
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        // activate triangle shader
-        glUseProgram(shaderProgram);
+        // 1): PROJECTION MATRIX
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH/ (float) SCR_HEIGHT, 0.1f, 100.0f);
+
+        triangleShader.use();
+        triangleShader.setMat4("projection", projection);
         
+        // 2): VIEW MATRIX
+        glm::mat4 view = glm::mat4(1.0f); //Set the view as identity matrix
+        view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        triangleShader.setMat4("view", view);
+
         // render triangles
         glBindVertexArray(VAO);
-
+        triangleShader.use();
         for(glm::vec3 pos : trianglePositions)
         {
+            //3): MODEL MATRIX
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, pos);
-
-            //MUST IMPL SHADER CLASS FOR TRIANGLE
+            model = glm::scale(model, glm::vec3(1.0f));
+            triangleShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
-        glUseProgram(lineShaderProgram);
-        glBindVertexArray(lineVAO);
+        lineShader.use();
+        lineShader.setMat4("projection", projection);
+        lineShader.setMat4("view", view);
 
+
+        //render lines
+        glBindVertexArray(lineVAO);
+        lineShader.use();
         for(unsigned int i = 0; i < lineEndPos.size(); i++)
         {
             glm::mat4 endModel = glm::mat4(1.0f);
@@ -228,8 +195,6 @@ int main()
 
             glDrawArrays(GL_LINES, 0, 2);
         }
-
-        glDrawArrays(GL_LINES, 0, graphLineVertices.size()/2);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
