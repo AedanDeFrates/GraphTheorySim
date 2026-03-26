@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "graph.hpp"
+#include "Shader.h"
 
 //Shaders for Triangle
 const char *vertexShaderSource = "#version 330 core\n"
@@ -54,6 +55,9 @@ void processInput(GLFWwindow* window)
 
 int main() 
 {
+    //===============================================================
+    //                          INIT
+    //===============================================================
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -76,6 +80,8 @@ int main()
 
     glViewport(0,0,800,600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
+
+    glEnable(GL_DEPTH_TEST);
 
     //=====================================================================
     //                        Configure Vertices
@@ -154,6 +160,7 @@ int main()
     glBindVertexArray(0);
 
     //========================================================
+    //                  LINE SHADER SETUP
     //========================================================
 
     unsigned int lineVertexShader, lineFragmentShader;
@@ -177,6 +184,7 @@ int main()
     glDeleteShader(lineFragmentShader);
 
     //=========================================================
+    //                    LINE VBO/VAO SETUP
     //=========================================================
 
     unsigned int lineVBO, lineVAO;
@@ -193,6 +201,17 @@ int main()
 
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, 3*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    //============================================================
+    //                     CAMERA SETUP
+    //============================================================
+
+
+
+
+    //==============================================================
+    //                      MAIN RENDER LOOP
+    //==============================================================
 
     while(!glfwWindowShouldClose(window))
     {
