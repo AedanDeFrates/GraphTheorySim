@@ -18,12 +18,10 @@ const char *triangleFragmentShaderSource = "shaderSources/triangle.fs";
 const char *lineVertexShaderSource = "shaderSources/line.vs";
 const char *lineFragmentShaderSource = "shaderSources/line.fs";
 
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
-// Callback for window resize
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) 
-{
-    glViewport(0, 0, width, height);
-}
+
 void processInput(GLFWwindow* window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -57,8 +55,7 @@ int main()
         return -1;
     }
 
-    glViewport(0,0,800,600);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
+    glViewport(0,0,SCR_WIDTH, SCR_HEIGHT);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -132,6 +129,11 @@ int main()
     Shader triangleShader(triangleVertexShaderSource, triangleFragmentShaderSource );
     Shader lineShader(lineVertexShaderSource, lineFragmentShaderSource);
 
+
+    //THREE SHADER OPERATIONS
+    // 1): PROJECTION MATRIX
+    // 2): VIEW MATRIX
+    // 3): MODEL MATRIX
     
 
     //============================================================
@@ -148,24 +150,43 @@ int main()
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        // 1): PROJECTION MATRIX
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH/ (float) SCR_HEIGHT, 0.1f, 100.0f);
+
+        triangleShader.use();
+        triangleShader.setMat4("projection", projection);
         
+        // 2): VIEW MATRIX
+        glm::mat4 view = glm::mat4(1.0f); //Set the view as identity matrix
+        view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        triangleShader.setMat4("view", view);
+
         // render triangles
         glBindVertexArray(VAO);
+        triangleShader.use();
         for(glm::vec3 pos : trianglePositions)
         {
+            //3): MODEL MATRIX
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, pos);
-
-            //MUST IMPL SHADER CLASS FOR TRIANGLE
+            model = glm::scale(model, glm::vec3(1.0f));
+            triangleShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
+        lineShader.use();
+        lineShader.setMat4("projection", projection);
+        lineShader.setMat4("view", view);
+
+
         //render lines
         glBindVertexArray(lineVAO);
+        lineShader.use();
         for(unsigned int i = 0; i < lineEndPos.size(); i++)
         {
             glm::mat4 endModel = glm::mat4(1.0f);
@@ -174,8 +195,6 @@ int main()
 
             glDrawArrays(GL_LINES, 0, 2);
         }
-
-        glDrawArrays(GL_LINES, 0, graphLineVertices.size()/2);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
