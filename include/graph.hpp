@@ -48,8 +48,11 @@ class Graph
     bool addVertex(Vertex* v);
     bool addEdge(Edge* e);
     bool isSimple() const;
+    std::vector<glm::vec3> getEdgeHeadVectors()const;
+    std::vector<glm::vec3> getEdgeTailVectors() const;
+
     std::vector<float> mkLineVectors() const;
-    std::vector<float> mkTriangleVectors() const;
+    std::vector<glm::vec3> getTrianglePositions() const;
 
 };
 
