@@ -65,9 +65,9 @@ int main()
 
     // Triangle Vertices
     float triangleVertices[] = {
-        0.0f, 0.2f, 0.0f,
-        -0.2f, -0.2f, 0.0f,
-        0.2f, -0.2f, 0.0f
+        0.0f, 0.02f, 0.0f,
+        -0.02f, -0.02f, 0.0f,
+        0.02f, -0.02f, 0.0f
     };
 
     // Triangle Positions
@@ -173,7 +173,7 @@ int main()
             //3): MODEL MATRIX
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, pos);
-            model = glm::scale(model, glm::vec3(1.0f));
+
             triangleShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -189,9 +189,19 @@ int main()
         lineShader.use();
         for(unsigned int i = 0; i < lineEndPos.size(); i++)
         {
-            glm::mat4 endModel = glm::mat4(1.0f);
-            endModel = glm::translate(endModel, lineEndPos.at(i));
+            glm::vec3 start = lineStartPos.at(i);
+            glm::vec3 end = lineEndPos.at(i);
+
+            glm::vec3 direction = end - start;
+            float length = glm::length(direction);
+            float angle = atan2(direction.y, direction.x);
+
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, start);
+            model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
             
+            lineShader.setMat4("model", model);
 
             glDrawArrays(GL_LINES, 0, 2);
         }
