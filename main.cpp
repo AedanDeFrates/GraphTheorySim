@@ -18,8 +18,24 @@ const char *triangleFragmentShaderSource = "shaderSources/triangle.fs";
 const char *lineVertexShaderSource = "shaderSources/line.vs";
 const char *lineFragmentShaderSource = "shaderSources/line.fs";
 
+//Screen
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+//Time
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+//Camera
+glm::vec3 camPos = glm::vec3(0.0f,0.0f,3.0f);
+glm::vec3 camFront = glm::vec3(0.0f, 0.0f,-1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = 800.0f / 2.0;
+float lastY = 600.0f / 2.0;
+float fov = 45.0f;
 
 
 void processInput(GLFWwindow* window)
@@ -27,6 +43,24 @@ void processInput(GLFWwindow* window)
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    float cameraSpeed = static_cast<float>(2.5 * deltaTime);
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+
+    }
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+
+    }
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+
+    }
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+
     }
 }
 
@@ -149,6 +183,12 @@ int main()
 
     while(!glfwWindowShouldClose(window))
     {
+        //Fram Time Logic
+        float currFrameTime = static_cast<float>(glfwGetTime());
+        deltaTime = currFrameTime - lastFrame;
+        lastFrame = currFrameTime;
+
+
         processInput(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -189,6 +229,18 @@ int main()
         lineShader.use();
         for(unsigned int i = 0; i < lineEndPos.size(); i++)
         {
+            float line[] = {
+                lineStartPos.at(i).x, lineStartPos.at(i).y, lineStartPos.at(i).z,
+                lineEndPos.at(i).x, lineEndPos.at(i).y, lineEndPos.at(i).z
+            };
+
+            glm::mat4 model = glm::mat4(1.0f);
+
+            lineShader.setMat4("model", model);
+
+            glDrawArrays(GL_LINES, 0, 2);
+
+            /*
             glm::vec3 start = lineStartPos.at(i);
             glm::vec3 end = lineEndPos.at(i);
 
@@ -204,6 +256,7 @@ int main()
             lineShader.setMat4("model", model);
 
             glDrawArrays(GL_LINES, 0, 2);
+            */
         }
 
         glfwSwapBuffers(window);
