@@ -9,6 +9,7 @@
 
 #include "graph.hpp"
 #include "Shader.h"
+#include "mouse_inputs.hpp"
 
 //Shaders for Triangle
 const char *triangleVertexShaderSource = "shaderSources/triangle.vs";
@@ -36,6 +37,8 @@ float pitch = 0.0f;
 float lastX = 800.0f / 2.0;
 float lastY = 600.0f / 2.0;
 float fov = 45.0f;
+
+
 
 
 void processInput(GLFWwindow* window)
@@ -92,7 +95,13 @@ int main()
     glViewport(0,0,SCR_WIDTH, SCR_HEIGHT);
 
     glEnable(GL_DEPTH_TEST);
-
+    
+    //=======================================================
+    //========================================================
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    
     //=====================================================================
     //                        Configure Vertices
     //=====================================================================
