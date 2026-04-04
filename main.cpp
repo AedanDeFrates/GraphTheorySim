@@ -105,22 +105,10 @@ int main()
     };
 
     // Triangle Positions
-    std::vector<glm::vec3> trianglePositions = test_graph().getTrianglePositions();
-
-    // Line Vertices
-    float lineVertices[] = {
-        0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f
-    };
-    // Line Positions
-    // Head
-    std::vector<glm::vec3> lineStartPos = test_graph().getEdgeTailVectors();
-    std::vector<glm::vec3> lineEndPos = test_graph().getEdgeHeadVectors();
-
-    //funct.for.line.positions
+    std::vector<glm::vec3> trianglePositions = graph_test().getTrianglePositions();
 
     // Lines
-    std::vector<float> graphLineVertices = test_graph().mkLineVectors();
+    std::vector<float> graphLineVertices = graph_test().getLineVectors();
 
     //=========================================================================
     //                        TRIANGLE VBO/VAO SETUP
@@ -223,41 +211,12 @@ int main()
         lineShader.setMat4("projection", projection);
         lineShader.setMat4("view", view);
 
-
-        //render lines
+        //render all lines from the line VBO
         glBindVertexArray(lineVAO);
-        lineShader.use();
-        for(unsigned int i = 0; i < lineEndPos.size(); i++)
-        {
-            float line[] = {
-                lineStartPos.at(i).x, lineStartPos.at(i).y, lineStartPos.at(i).z,
-                lineEndPos.at(i).x, lineEndPos.at(i).y, lineEndPos.at(i).z
-            };
+        glm::mat4 model = glm::mat4(1.0f);
+        lineShader.setMat4("model", model);
+        glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(graphLineVertices.size() / 3));
 
-            glm::mat4 model = glm::mat4(1.0f);
-
-            lineShader.setMat4("model", model);
-
-            glDrawArrays(GL_LINES, 0, 2);
-
-            /*
-            glm::vec3 start = lineStartPos.at(i);
-            glm::vec3 end = lineEndPos.at(i);
-
-            glm::vec3 direction = end - start;
-            float length = glm::length(direction);
-            float angle = atan2(direction.y, direction.x);
-
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, start);
-            model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-            
-            lineShader.setMat4("model", model);
-
-            glDrawArrays(GL_LINES, 0, 2);
-            */
-        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
