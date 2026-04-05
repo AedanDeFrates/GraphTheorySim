@@ -163,7 +163,7 @@ int main()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // 1): PROJECTION MATRIX
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH/ (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float) SCR_WIDTH/ (float) SCR_HEIGHT, 0.1f, 100.0f);
 
         triangleShader.use();
         triangleShader.setMat4("projection", projection);
