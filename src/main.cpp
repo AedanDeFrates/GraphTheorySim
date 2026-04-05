@@ -1,15 +1,4 @@
-#include <glad/glad.h>   // Load OpenGL functions
-#include <GLFW/glfw3.h>  // Windowing/input
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <iostream>
-
-#include "graph.hpp"
-#include "Shader.h"
-#include "mouse_inputs.hpp"
+#include "main.hpp"
 
 //Shaders for Triangle
 const char *triangleVertexShaderSource = "shaderSources/triangle.vs";
@@ -28,17 +17,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 //Camera
-glm::vec3 camPos = glm::vec3(0.0f,0.0f,3.0f);
-glm::vec3 camFront = glm::vec3(0.0f, 0.0f,-1.0f);
-glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-float yaw = -90.0f;
-float pitch = 0.0f;
-float lastX = 800.0f / 2.0;
-float lastY = 600.0f / 2.0;
-float fov = 45.0f;
-
-
+Camera camera;
 
 
 void processInput(GLFWwindow* window)
@@ -165,14 +144,6 @@ int main()
     // 1): PROJECTION MATRIX
     // 2): VIEW MATRIX
     // 3): MODEL MATRIX
-    
-
-    //============================================================
-    //                     CAMERA SETUP
-    //============================================================
-
-
-
 
     //==============================================================
     //                      MAIN RENDER LOOP
@@ -185,8 +156,8 @@ int main()
         deltaTime = currFrameTime - lastFrame;
         lastFrame = currFrameTime;
 
-
         processInput(window);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -198,9 +169,7 @@ int main()
         triangleShader.setMat4("projection", projection);
         
         // 2): VIEW MATRIX
-        glm::mat4 view = glm::mat4(1.0f); //Set the view as identity matrix
-        view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        triangleShader.setMat4("view", view);
+        triangleShader.setMat4("view", camera.getViewMatrix());
 
         // render triangles
         glBindVertexArray(VAO);
@@ -218,7 +187,7 @@ int main()
 
         lineShader.use();
         lineShader.setMat4("projection", projection);
-        lineShader.setMat4("view", view);
+        lineShader.setMat4("view", camera.getViewMatrix());
 
         //render all lines from the line VBO
         glBindVertexArray(lineVAO);
