@@ -19,6 +19,9 @@ float lastFrame = 0.0f;
 //Camera
 Camera camera;
 
+//Main Graph
+Graph build_graph;
+
 
 void processInput(GLFWwindow* window)
 {
@@ -80,6 +83,7 @@ int main()
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
     
     //=====================================================================
     //                        Configure Vertices
@@ -151,7 +155,7 @@ int main()
 
     while(!glfwWindowShouldClose(window))
     {
-        //Fram Time Logic
+        //Frame Time Logic
         float currFrameTime = static_cast<float>(glfwGetTime());
         deltaTime = currFrameTime - lastFrame;
         lastFrame = currFrameTime;
