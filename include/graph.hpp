@@ -149,4 +149,6 @@ class Graph
 
 Graph graph_test();
 
+extern Graph build_graph;
+
 #endif

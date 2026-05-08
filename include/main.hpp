@@ -2,7 +2,7 @@
 #define MAIN_HPP
 
 #include "camera.hpp"
-#include "mouse_inputs.hpp"
+#include "inputs.hpp"
 #include "graph.hpp"
 #include "shader.h"
 
